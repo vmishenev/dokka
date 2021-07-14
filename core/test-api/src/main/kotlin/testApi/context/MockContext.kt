@@ -40,6 +40,9 @@ class MockContext(
     override val unusedPoints: Collection<ExtensionPoint<*>>
         get() = unusedExtensionPoints
             ?: throw IllegalStateException("This mock context doesn't provide unused extension points")
+
+    override val registeredPlugins: Collection<DokkaPlugin>
+        get() = plugins.values
 }
 
 private fun DokkaPlugin.injectContext(context: DokkaContext) {

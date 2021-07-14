@@ -14,7 +14,7 @@ import java.util.*
 open class DokkaLocationProvider(
     pageGraphRoot: RootPageNode,
     dokkaContext: DokkaContext,
-    val extension: String = ".html"
+    val extension: String
 ) : DokkaBaseLocationProvider(pageGraphRoot, dokkaContext) {
     protected open val PAGE_WITH_CHILDREN_SUFFIX = "index"
 

@@ -22,17 +22,19 @@ class SitemapPageTransformer(private val context: DokkaContext) : PageTransforme
     private val maybeConfiguration = configuration<SitemapPlugin, SitemapConfiguration>(context)
 
     override fun invoke(input: RootPageNode): RootPageNode {
-        val baseUrl: String = maybeConfiguration?.baseUrl ?: "".also {
+        val baseUrl: String = maybeConfiguration?.baseUrl ?: run {
             context.logger.warn(
                 "Failed to find configured value for baseUrl. Sitemap plugin will generate only relative paths from root page, " +
                         "that need to be appended manually to site's url"
             )
+            ""
         }
         val page = RendererSpecificResourcePage(
-            name = maybeConfiguration?.relativeOutputLocation ?: SitemapConfiguration.defaultRelativeOutputLocation,
+            name = fileName,
             children = emptyList(),
             strategy = RenderingStrategy.DriLocationResolvableWrite { resolver ->
                 createTextSitemap(input, resolver, baseUrl).joinToString(separator = "\n")
+                    .prefixedWithModuleNameInMultiModule()
             })
 
         return input.modified(children = input.children + page)
@@ -41,13 +43,32 @@ class SitemapPageTransformer(private val context: DokkaContext) : PageTransforme
     private fun createTextSitemap(
         rootPageNode: RootPageNode,
         locationResolver: DriResolver,
-        baseUrl: String
+        baseUrl: String,
     ): Set<String> {
-        val baseUrlWithSlash = baseUrl.takeIf { it.endsWith("/") || it.isEmpty() } ?: "$baseUrl/"
+        val moduleTemplate = templateSymbol.takeIf { context.configuration.delayTemplateSubstitution }
+        val baseUrlWithoutSlash = baseUrl.removeSuffix("/").takeIf { it.isNotEmpty() }
         return rootPageNode.withDescendants().fold(mutableSetOf()) { siteMap, page ->
-            (page as? ContentPage)?.let { baseUrlWithSlash + locationResolver(it.dri.first(), it.content.sourceSets) }
-                ?.let { resolvedLocation -> siteMap.add(resolvedLocation) }
+            (page as? ContentPage)?.let {
+                listOfNotNull(
+                    baseUrlWithoutSlash,
+                    moduleTemplate,
+                    locationResolver(it.dri.first(), it.content.sourceSets),
+                ).joinToString("/")
+            }?.let { resolvedLocation -> siteMap.add(resolvedLocation) }
             siteMap
         }
+    }
+
+    private val fileName: String
+        get() =
+            if (context.configuration.delayTemplateSubstitution) SitemapConfiguration.defaultRelativeOutputLocation
+            else maybeConfiguration?.relativeOutputLocation ?: SitemapConfiguration.defaultRelativeOutputLocation
+
+    private fun String.prefixedWithModuleNameInMultiModule(): String =
+        if (context.configuration.delayTemplateSubstitution) "${context.configuration.moduleName}\n$this"
+        else this
+
+    companion object {
+        val templateSymbol = "###"
     }
 }

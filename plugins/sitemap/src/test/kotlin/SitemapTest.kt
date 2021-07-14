@@ -15,6 +15,7 @@ class SitemapTest: BaseAbstractTest() {
 
     private val configuration = dokkaConfiguration {
         moduleName = "example"
+        delayTemplateSubstitution = false
         sourceSets {
             val jvm = sourceSet {
                 name = "jvm"

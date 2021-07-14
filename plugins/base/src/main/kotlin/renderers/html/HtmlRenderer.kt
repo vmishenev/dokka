@@ -30,6 +30,8 @@ import java.net.URI
 open class HtmlRenderer(
     context: DokkaContext
 ) : DefaultRenderer<FlowContent>(context) {
+    override val outputExtension: String = "html"
+
     private val configuration = configuration<DokkaBase, DokkaBaseConfiguration>(context)
 
     private val sourceSetDependencyMap: Map<DokkaSourceSetID, List<DokkaSourceSetID>> =

@@ -18,7 +18,6 @@ interface DokkaContext {
 
     val logger: DokkaLogger
     val configuration: DokkaConfiguration
-    val registeredPlugins: Collection<DokkaPlugin>
     val unusedPoints: Collection<ExtensionPoint<*>>
 
     companion object {
@@ -59,8 +58,6 @@ private class DokkaContextConfigurationImpl(
     val pointsPopulated: MutableSet<ExtensionPoint<*>> = mutableSetOf()
     override val unusedPoints: Set<ExtensionPoint<*>>
         get() = pointsPopulated - pointsUsed
-    override val registeredPlugins: Collection<DokkaPlugin>
-        get() = plugins.values
 
     private enum class State {
         UNVISITED,

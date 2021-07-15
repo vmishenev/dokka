@@ -31,7 +31,9 @@ open class MultimoduleLocationProvider(private val root: RootPageNode, dokkaCont
         if (node is ContentPage && MultimodulePageCreator.MULTIMODULE_ROOT_DRI in node.dri) pathToRoot(root) + "index$outputExtension"
         else defaultLocationProvider.resolve(node, context, skipExtension)
 
-    override fun pathToRoot(from: PageNode): String = defaultLocationProvider.pathToRoot(from)
+    override fun pathToRoot(from: PageNode): String =
+        if (from is ContentPage && MultimodulePageCreator.MULTIMODULE_ROOT_DRI in from.dri) ""
+        else defaultLocationProvider.pathToRoot(from)
 
     override fun ancestors(node: PageNode): List<PageNode> = listOf(root)
 

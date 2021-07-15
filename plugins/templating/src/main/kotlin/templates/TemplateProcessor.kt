@@ -82,7 +82,7 @@ class DefaultMultiModuleTemplateProcessor(
 
     override fun process(generatedPagesTree: RootPageNode) {
         val locationProvider = locationProviderFactory.getLocationProvider(generatedPagesTree, extension)
-        generatedPagesTree.withDescendants().mapNotNull { pageNode -> locationProvider.resolve(pageNode)?.let { File(it) } }
+        generatedPagesTree.withDescendants().mapNotNull { pageNode -> locationProvider.resolve(pageNode)?.let { File(context.configuration.outputDir, it) } }
             .forEach { location -> strategies.first { it.process(location, location, null) } }
     }
 }

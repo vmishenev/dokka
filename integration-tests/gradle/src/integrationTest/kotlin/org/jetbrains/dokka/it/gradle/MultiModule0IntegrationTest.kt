@@ -74,12 +74,7 @@ class MultiModule0IntegrationTest(override val versions: BuildVersions) : Abstra
             "Expected moduleC being mentioned in -modules.html"
         )
 
-        val sitemap = File(outputDir, "sitemap.txt")
-        assertTrue(sitemap.isFile, "Missing sitemap file")
-        val allHtmlFiles = outputDir.allHtmlFiles().toList()
-        val sitemapContent = sitemap.readLines()
-        assertTrue(sitemapContent.isNotEmpty())
-        assertEquals(allHtmlFiles.map { it.absolutePath.removePrefix(outputDir.absolutePath) }.sorted(), sitemapContent.sorted())
+        outputDir.assertSitemapContent()
 
         val gfmOutputDir = File(projectDir, "moduleA/build/dokka/gfmMultiModule")
         assertTrue(gfmOutputDir.isDirectory, "Missing dokka GFM output directory")

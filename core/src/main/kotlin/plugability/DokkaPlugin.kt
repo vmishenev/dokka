@@ -18,9 +18,6 @@ abstract class DokkaPlugin {
 
     protected inline fun <reified T : DokkaPlugin> plugin(): T = context?.plugin(T::class) ?: throwIllegalQuery()
 
-    protected val registeredPlugins: Collection<DokkaPlugin>
-        get() = context?.registeredPlugins.orEmpty()
-
     protected fun <T : Any> extensionPoint() = ReadOnlyProperty<DokkaPlugin, ExtensionPoint<T>> { thisRef, property ->
         ExtensionPoint(
             thisRef::class.qualifiedName ?: throw AssertionError("Plugin must be named class"),

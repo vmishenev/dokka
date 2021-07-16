@@ -3,6 +3,9 @@
 Plugin creates a sitemap for the documentation in text format according to 
 the [specification](https://developers.google.com/search/docs/advanced/sitemaps/build-sitemap?hl=en&visit_id=637613321436192601-2699040246&rd=1#text).
 
+### Prerequisites
+Sitemap plugin works with html format and has to be applied manually for each documented module.
+
 ### Configuration
 Sitemap plugin can be configured using a plugins configuration mechanism 
 described on build tool's page: [gradle](../gradle/usage.md#applying-plugins),

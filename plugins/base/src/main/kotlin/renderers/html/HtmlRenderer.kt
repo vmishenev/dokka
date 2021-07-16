@@ -43,7 +43,7 @@ open class HtmlRenderer(
 
     private var shouldRenderSourceSetBubbles: Boolean = false
 
-    override val preprocessors = context.plugin<DokkaBase>().query { htmlPreprocessors }
+    override val preprocessors = context.plugin<DokkaBase>().query { htmlPreprocessors } + context.plugin<DokkaBase>().query { doLastTransformers }
 
     private val tabSortingStrategy = context.plugin<DokkaBase>().querySingle { tabSortingStrategy }
 

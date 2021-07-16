@@ -25,26 +25,24 @@ class AllModulesPagePlugin : DokkaPlugin() {
     val multimoduleLocationProvider by extending {
         (dokkaBase.locationProviderFactory
                 providing MultimoduleLocationProvider::Factory
-                override plugin<DokkaBase>().locationProvider
-                applyIf { !delayTemplateSubstitution })
+                override plugin<DokkaBase>().locationProvider)
     }
 
     val baseLocationProviderFactory by extending {
-        partialLocationProviderFactory providing ::DokkaLocationProviderFactory applyIf { !delayTemplateSubstitution }
+        partialLocationProviderFactory providing ::DokkaLocationProviderFactory
     }
 
     val allModulesPageGeneration by extending {
         (CoreExtensions.generation
                 providing ::AllModulesPageGeneration
-                override dokkaBase.singleGeneration
-                applyIf { !delayTemplateSubstitution })
+                override dokkaBase.singleGeneration)
     }
 
     val resolveLinkCommandHandler by extending {
-        plugin<TemplatingPlugin>().directiveBasedCommandHandlers providing ::ResolveLinkCommandHandler applyIf { !delayTemplateSubstitution }
+        plugin<TemplatingPlugin>().directiveBasedCommandHandlers providing ::ResolveLinkCommandHandler
     }
 
     val multiModuleLinkResolver by extending {
-        externalModuleLinkResolver providing ::DefaultExternalModuleLinkResolver applyIf { !delayTemplateSubstitution }
+        externalModuleLinkResolver providing ::DefaultExternalModuleLinkResolver
     }
 }

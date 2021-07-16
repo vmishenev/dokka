@@ -129,8 +129,6 @@ interface Renderer {
 }
 ```
 
-By default, only `HtmlRenderer`, that extends basic `DefaultRenderer`, is created, but it will be registered only if configuration parameter `format` is set to `html`. Using any other value without providing valid renderer will cause Dokka to fail. 
-
 ## Multimodule page generation endpoints
 
 Multimodule page generation is a separate process, that declares two additional entry points:
@@ -221,6 +219,7 @@ object SamplePageMergerStrategy: PageMergerStrategy {
 | `externalLocationProviderFactory` | provides `ExternalLocationProvider` instance that returns paths for elements that are not part of generated documentation | `ExternalLocationProviderFactory` | `DefaultLocationProvider` | false | `JavadocExternalLocationProviderFactory` `DokkaExternalLocationProviderFactory` |
 | `outputWriter` | writes rendered pages files | `OutputWriter` | `DefaultRenderer` `HtmlRenderer` | true | `FileWriter`|
 | `htmlPreprocessors` | transforms page content before HTML rendering | `PageTransformer`| `DefaultRenderer` `HtmlRenderer` | false | `RootCreator` `SourceLinksTransformer` `NavigationPageInstaller` `SearchPageInstaller` `ResourceInstaller` `StyleAndScriptsAppender` `PackageListCreator` |
+| `doLastTransformers` | transforms page content. Made to provide an extension point that has knowledge about whole pages tree. By convention should not modify pages tree in any other form apart from adding a `RendererSpecificPage` that should not rely on pages added by other plugins in this extension point. | `PageTransformer`| `DefaultRenderer` `HtmlRenderer` | false | None |
 | `samplesTransformer` | transforms content for code samples for HTML rendering | `SamplesTransformer` | `HtmlRenderer` | true | `DefaultSamplesTransformer` |
 
 

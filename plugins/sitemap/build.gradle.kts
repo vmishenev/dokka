@@ -2,6 +2,7 @@ import org.jetbrains.registerDokkaArtifactPublication
 
 dependencies {
     implementation(project(":plugins:templating"))
+    implementation(project(":plugins:base"))
     compileOnly(project(":plugins:all-modules-page"))
 
     testImplementation(project(":plugins:base"))

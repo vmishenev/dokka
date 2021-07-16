@@ -45,7 +45,7 @@ class SitemapTest: BaseAbstractTest() {
             pluginOverrides = listOf(writerPlugin, SitemapPlugin())
         ) {
             renderingStage = { _, _ ->
-                val content = writerPlugin.writer.contents["example/${SitemapConfiguration.defaultRelativeOutputLocation}"]
+                val content = writerPlugin.writer.contents[SitemapConfiguration.defaultRelativeOutputLocation]
                 assertNotNull(content, "Expected a sitemap")
                 assertEquals(expectedEntriesWithoutBaseUrl.joinToString(separator = "\n"), content)
             }
@@ -69,7 +69,7 @@ class SitemapTest: BaseAbstractTest() {
             renderingStage = { _, _ ->
                 val expected = expectedEntriesWithoutBaseUrl.map { "${sitemapConfiguration.baseUrl}/$it" }.joinToString(separator = "\n")
 
-                val content = writerPlugin.writer.contents["example/${SitemapConfiguration.defaultRelativeOutputLocation}"]
+                val content = writerPlugin.writer.contents[SitemapConfiguration.defaultRelativeOutputLocation]
                 assertNotNull(content, "Expected a sitemap")
                 assertEquals(expected, content)
             }
@@ -91,7 +91,7 @@ class SitemapTest: BaseAbstractTest() {
             pluginOverrides = listOf(writerPlugin, SitemapPlugin())
         ) {
             renderingStage = { _, _ ->
-                val content = writerPlugin.writer.contents["example/${sitemapConfiguration.relativeOutputLocation}"]
+                val content = writerPlugin.writer.contents[sitemapConfiguration.relativeOutputLocation]
                 assertNotNull(content, "Expected a sitemap")
             }
         }

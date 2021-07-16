@@ -1,7 +1,7 @@
 package org.jetbrains.dokka.sitemap
 
-import org.jetbrains.dokka.CoreExtensions
 import org.jetbrains.dokka.allModulesPage.AllModulesPagePlugin
+import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.plugability.ConfigurableBlock
 import org.jetbrains.dokka.plugability.DokkaPlugin
 import org.jetbrains.dokka.sitemap.transformers.pages.SitemapPageTransformer
@@ -20,12 +20,15 @@ data class SitemapConfiguration(
 
 class SitemapPlugin : DokkaPlugin() {
     private val templatingPlugin by lazy { plugin<TemplatingPlugin>() }
+
     val sitemapPageTransformer by extending {
-        CoreExtensions.pageTransformer providing ::SitemapPageTransformer
+        with(plugin<DokkaBase>()) {
+            doLastTransformers providing ::SitemapPageTransformer
+        }
     }
     val sitemapMultiModulePageTransformer by extending {
         with(plugin<AllModulesPagePlugin>()) {
-            allModulesPageTransformer providing ::SitemapPageTransformer
+            allModulesPageTransformer providing ::SitemapPageTransformer applyIf { delayTemplateSubstitution }
         }
     }
 

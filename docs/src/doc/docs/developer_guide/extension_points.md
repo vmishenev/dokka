@@ -157,6 +157,10 @@ Additional transformation that we might apply for multimodule page.
 
 This step uses `CoreExtensions.allModulePageTransformer` entry point. All extensions registered using this entry point will be invoked.  Each of them is required to implement common `PageTransformer` interface.
 
+It is possible to have one plugin work on single module and multimodule generation. 
+The caveat is that when your plugin needs to add `AllModulesPagePlugin` as a dependency,
+make it `compileOnly`. Adding it as implementation will also add dependent plugins with is undesired.
+
 ## Default extensions' extension points
 
 Default core extension points already have an implementation for providing basic Dokka functionality. All of them are declared in `DokkaBase` plugin. If you don't want this default extensions to load, all you need to do is not load Dokka base and load your plugin instead.
@@ -171,7 +175,6 @@ tasks {
     val dokka by getting(DokkaTask::class) {
         pluginsConfig = alternativeAndIndependentPlugins
         outputDirectory = dokkaOutputDir
-        outputFormat = "html"
         [...]
     }
 }

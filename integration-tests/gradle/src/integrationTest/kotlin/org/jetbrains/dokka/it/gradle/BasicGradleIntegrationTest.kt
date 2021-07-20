@@ -153,7 +153,7 @@ class BasicGradleIntegrationTest(override val versions: BuildVersions) : Abstrac
         }
         assertTrue(imagesDir.resolve("custom-resource.svg").isFile)
 
-        moduleOutputDir.assertSitemapContent(this)
+        assertSitemapContent()
     }
 
     private fun File.assertJavadocOutputDir() {

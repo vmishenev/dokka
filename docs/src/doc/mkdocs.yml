@@ -11,7 +11,7 @@ repo_url: https://github.com/Kotlin/dokka
 edit_uri: edit/master/docs/src/doc/docs/
 
 # Copyright (shown at the footer)
-copyright: 'Copyright &copy; 2020 Jetbrains'
+copyright: 'Copyright &copy; 2021 Jetbrains'
 
 # Material theme
 theme:

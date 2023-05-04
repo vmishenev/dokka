@@ -17,10 +17,12 @@ import org.jetbrains.dokka.plugability.query
 import org.jetbrains.dokka.transformers.sources.AsyncSourceToDocumentableTranslator
 import org.jetbrains.dokka.utilities.parallelMap
 import org.jetbrains.dokka.utilities.report
+import java.lang.management.ManagementFactory
 
 class SingleModuleGeneration(private val context: DokkaContext) : Generation {
 
     override fun Timer.generate() {
+        report("PID " + ManagementFactory.getRuntimeMXBean().getName())
         report("Validity check")
         validityCheck(context)
 

@@ -22,13 +22,7 @@ java {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 
-    maxParallelForks = if (System.getenv("GITHUB_ACTIONS") != null) {
-        if(System.getenv("RUNNER_OS") == "Windows") 1 // due to memory consumption on Windows
-        else
-        Runtime.getRuntime().availableProcessors()
-    } else {
-        (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
-    }
+    maxParallelForks = 1
 
     javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(dokkaBuild.testJavaLauncherVersion)

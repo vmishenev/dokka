@@ -33,10 +33,14 @@ class CoroutinesGradleIntegrationTest(override val versions: BuildVersions) : Ab
 
     @Test
     fun execute() {
-        val result = createGradleRunner(":dokkaHtmlMultiModule", "-i", "-s").buildRelaxed()
+        val result = createGradleRunner(
+            ":dokkaHtmlMultiModule",
+            "-i",
+            "-s",
+            jvmArgs = listOf("-Xmx2G", "-XX:MaxMetaspaceSize=500m")
+        ).buildRelaxed()
 
         assertEquals(TaskOutcome.SUCCESS, assertNotNull(result.task(":dokkaHtmlMultiModule")).outcome)
-
         assertTrue(projectOutputLocation.isDirectory, "Missing dokka output directory")
 
         projectOutputLocation.allHtmlFiles().forEach { file ->

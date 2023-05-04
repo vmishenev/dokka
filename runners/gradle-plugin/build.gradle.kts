@@ -10,10 +10,10 @@ plugins {
 dependencies {
     api(projects.core)
 
-    compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20")
+    compileOnly(libs.gradlePlugin.kotlin)
     compileOnly(libs.gradlePlugin.android)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20")
+    testImplementation(libs.gradlePlugin.kotlin)
     testImplementation(libs.gradlePlugin.android)
 }
 

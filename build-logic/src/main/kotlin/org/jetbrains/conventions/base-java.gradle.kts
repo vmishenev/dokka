@@ -22,6 +22,8 @@ java {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 
+    maxParallelForks = 1
+
     javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(dokkaBuild.testJavaLauncherVersion)
     })

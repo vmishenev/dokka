@@ -24,10 +24,10 @@ class Multiplatform0GradleIntegrationTest : AbstractGradleIntegrationTest() {
         File(templateProjectDir, "src").copyRecursively(File(projectDir, "src"))
     }
 
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(AllSupportedTestedVersionsArgumentsProvider::class)
-    fun execute(buildVersions: BuildVersions) {
-        val result = createGradleRunner(buildVersions, "dokkaHtml", "-i", "-s").buildRelaxed()
+    @ParameterizedTest(name = "{0} {1}")
+    @ArgumentsSource(AllSupportedTestedVersionsWithK2SwitcherArgumentsProvider::class)
+    fun execute(buildVersions: BuildVersions, extraParameter: String) {
+        val result = createGradleRunner(buildVersions, "dokkaHtml", "-i", "-s", extraParameter).buildRelaxed()
 
         assertEquals(TaskOutcome.SUCCESS, assertNotNull(result.task(":dokkaHtml")).outcome)
 

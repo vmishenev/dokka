@@ -16,10 +16,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-internal class WasmTestedVersionsArgumentsProvider : AllSupportedTestedVersionsArgumentsProvider() {
+internal class WasmTestedVersionsArgumentsProvider : AllSupportedTestedVersionsWithK2SwitcherArgumentsProvider() {
     override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
         return super.provideArguments(context).filter {
-            val buildVersions = it.get().single() as BuildVersions
+            val buildVersions = it.get().first() as BuildVersions
             buildVersions.kotlinVersion >= "1.8.20" // 1.8.20 is the first public version that can be tested with wasm
         }
     }
@@ -40,10 +40,10 @@ class WasmGradleIntegrationTest : AbstractGradleIntegrationTest() {
         File(templateProjectDir, "src").copyRecursively(File(projectDir, "src"))
     }
 
-    @ParameterizedTest(name = "{0}")
+    @ParameterizedTest(name = "{0} {1}")
     @ArgumentsSource(WasmTestedVersionsArgumentsProvider::class)
-    fun execute(buildVersions: BuildVersions) {
-        val result = createGradleRunner(buildVersions, "dokkaHtml", "-i", "-s").buildRelaxed()
+    fun execute(buildVersions: BuildVersions, extraParameter: String) {
+        val result = createGradleRunner(buildVersions, "dokkaHtml", "-i", "-s", extraParameter).buildRelaxed()
         assertEquals(TaskOutcome.SUCCESS, assertNotNull(result.task(":dokkaHtml")).outcome)
 
         val htmlOutputDir = File(projectDir, "build/dokka/html")

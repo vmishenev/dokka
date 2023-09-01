@@ -13,7 +13,7 @@ plugins {
 
 dependencies {
     compileOnly(projects.core)
-    compileOnly(projects.subprojects.analysisKotlinApi)
+    implementation(projects.subprojects.analysisKotlinApi)
 
     implementation(projects.subprojects.analysisMarkdownJb)
     implementation(projects.subprojects.analysisJavaPsi)
@@ -73,7 +73,7 @@ dependencies {
             isTransitive = false // see KTIJ-19820
         }
     }
-    runtimeOnly(libs.kotlinx.collections.immutable)
+    implementation(libs.kotlinx.collections.immutable)
     implementation(libs.kotlin.compiler.k2) {
         isTransitive = false
     }

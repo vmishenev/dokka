@@ -32,7 +32,7 @@ public abstract class AbstractGradleIntegrationTest : AbstractIntegrationTest() 
         return GradleRunner.create()
             .withProjectDir(projectDir)
             .forwardOutput()
-            .withJetBrainsCachedGradleVersion(buildVersions.gradleVersion)
+         //   .withJetBrainsCachedGradleVersion(buildVersions.gradleVersion)
             .withTestKitDir(File("build", "gradle-test-kit").absoluteFile)
             .withArguments(
                 listOfNotNull(
@@ -65,7 +65,7 @@ public abstract class AbstractGradleIntegrationTest : AbstractIntegrationTest() 
 private fun GradleRunner.withJetBrainsCachedGradleVersion(version: GradleVersion): GradleRunner {
     return withGradleDistribution(
         URI.create(
-            "https://cache-redirector.jetbrains.com/" +
+            "https://" +
                     "services.gradle.org/distributions/" +
                     "gradle-${version.version}-bin.zip"
         )

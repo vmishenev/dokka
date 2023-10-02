@@ -455,23 +455,15 @@ internal class DokkaSymbolVisitor(
         val dri = getDRIFromEnumEntry(enumEntrySymbol)
         val isExpect = false
 
-        val scope = enumEntrySymbol.getMemberScope()
-        val callables = scope.getCallableSymbols().toList()
-        val classifiers = scope.getClassifierSymbols().toList()
 
-        val functions = callables.filterIsInstance<KtFunctionSymbol>().map { visitFunctionSymbol(it, dri) }
-        val properties = callables.filterIsInstance<KtPropertySymbol>().map { visitPropertySymbol(it, dri) }
-        val classlikes =
-            classifiers.filterIsInstance<KtNamedClassOrObjectSymbol>()
-                .map { visitNamedClassOrObjectSymbol(it, dri) }
 
         return DEnumEntry(
             dri = dri,
             name = enumEntrySymbol.name.asString(),
             documentation = getDocumentation(enumEntrySymbol)?.toSourceSetDependent() ?: emptyMap(),
-            functions = functions,
-            properties = properties,
-            classlikes = classlikes,
+            functions = emptyList(),
+            properties = emptyList(),
+            classlikes = emptyList(),
             sourceSets = setOf(sourceSet),
             expectPresentInSet = sourceSet.takeIf { isExpect },
             extra = PropertyContainer.withAll(

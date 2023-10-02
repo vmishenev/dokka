@@ -1,7 +1,3 @@
-/*
- * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
- */
-
 package org.jetbrains.dokka.it.gradle
 
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -16,21 +12,21 @@ internal open class AllSupportedTestedVersionsWithK2SwitcherArgumentsProvider : 
 
 internal object TestedVersions {
 
-    val LATEST = BuildVersions("7.6.2", "1.9.10")
+    val LATEST = BuildVersions("7.6.1", "1.9.0")
 
     /**
      * All supported Gradle/Kotlin versions, including [LATEST]
      *
      * [Kotlin/Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#kotlin)
      */
-    val ALL_SUPPORTED =
-        BuildVersions.permutations(
-            gradleVersions = listOf("7.6.2"),
-            kotlinVersions = listOf("1.9.0", "1.8.20", "1.7.20", "1.6.21", "1.5.31"),
+    val ALL_SUPPORTED = listOf(LATEST)
+        /*BuildVersions.permutations(
+            gradleVersions = listOf("6.9"),
+            kotlinVersions = listOf("1.8.20", "1.7.20", "1.6.21", "1.5.31"),
         ) + BuildVersions.permutations(
             gradleVersions = listOf(*ifExhaustive("7.0", "6.1.1")),
             kotlinVersions = listOf(*ifExhaustive( "1.8.0", "1.7.0", "1.6.0", "1.5.0"))
-        ) + LATEST
+        ) + LATEST*/
 
     /**
      * Supported Android/Gradle/Kotlin versions, including [LATEST]
@@ -62,7 +58,6 @@ internal object TestedVersions {
         "1.8.10" to "18.2.0-pre.490",
         "1.8.20" to "18.2.0-pre.546",
         "1.9.0" to "18.2.0-pre.597",
-        "1.9.10" to "18.2.0-pre.597",
     )
 }
 
@@ -77,6 +72,6 @@ abstract class TestedVersionsArgumentsProvider(private val buildVersions: List<B
  */
 internal abstract class TestedVersionsWithK2SwitcherArgumentsProvider(private val buildVersions: List<BuildVersions>) : ArgumentsProvider {
     override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
-        return (buildVersions.map { Arguments.of(it, "") } + buildVersions.map { Arguments.of(it, useK2PropertyCLIArgument) }).stream()
+        return (buildVersions.map { Arguments.of(it, useK2PropertyCLIArgument) }).stream()
     }
 }

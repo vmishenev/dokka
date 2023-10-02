@@ -1,10 +1,7 @@
-/*
- * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
- */
-
 package org.jetbrains.dokka.it
 
 import org.jsoup.Jsoup
+import org.junit.jupiter.api.io.CleanupMode
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.net.URL
@@ -13,19 +10,19 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-public abstract class AbstractIntegrationTest {
+abstract class AbstractIntegrationTest {
 
-    @field:TempDir
-    public lateinit var tempFolder: File
+    @field:TempDir(cleanup = CleanupMode.NEVER)
+    lateinit var tempFolder: File
 
-    public val projectDir: File get() = File(tempFolder, "project")
+    val projectDir get() = File(tempFolder, "project")
 
-    public fun File.allDescendentsWithExtension(extension: String): Sequence<File> =
+    fun File.allDescendentsWithExtension(extension: String): Sequence<File> =
         this.walkTopDown().filter { it.isFile && it.extension == extension }
 
-    public fun File.allHtmlFiles(): Sequence<File> = allDescendentsWithExtension("html")
+    fun File.allHtmlFiles(): Sequence<File> = allDescendentsWithExtension("html")
 
-    public fun File.allGfmFiles(): Sequence<File> = allDescendentsWithExtension("md")
+    fun File.allGfmFiles(): Sequence<File> = allDescendentsWithExtension("md")
 
     protected fun assertContainsNoErrorClass(file: File) {
         val fileText = file.readText()

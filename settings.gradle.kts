@@ -25,7 +25,7 @@ dependencyResolutionManagement {
 
         maven("https://cache-redirector.jetbrains.com/intellij-repository/releases")
         maven("https://cache-redirector.jetbrains.com/intellij-third-party-dependencies")
-
+        mavenLocal()
         // Declare the Node.js & Yarn download repositories
         // Required by Gradle Node plugin: https://github.com/node-gradle/gradle-node-plugin/blob/3.5.1/docs/faq.md#is-this-plugin-compatible-with-centralized-repositories-declaration
         exclusiveContent {

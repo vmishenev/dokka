@@ -16,7 +16,7 @@ plugins {
 configureDokkaVersion()
 
 kotlin {
-    explicitApi = ExplicitApiMode.Strict
+    explicitApi = ExplicitApiMode.Disabled
 
     compilerOptions {
         allWarningsAsErrors.set(true)

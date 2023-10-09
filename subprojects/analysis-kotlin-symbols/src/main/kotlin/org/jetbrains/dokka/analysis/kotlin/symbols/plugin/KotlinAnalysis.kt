@@ -94,7 +94,7 @@ internal fun createAnalysisSession(
                     addRegularDependency(jdkModule)
                 }
                 sourceSet.dependentSourceSets.forEach{
-                    addRegularDependency(sourcesModuleBySourceSetId[it] ?: throw IllegalStateException("There is no source module for $it"))
+                    addDependsOnDependency(sourcesModuleBySourceSetId[it] ?: throw IllegalStateException("There is no source module for $it"))
                 }
             }
 

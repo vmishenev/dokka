@@ -1,11 +1,12 @@
 package org.jetbrains.dokka.analysis.kotlin.symbols.plugin
 
 import com.intellij.openapi.Disposable
+import org.jetbrains.dokka.DokkaConfiguration
+import org.jetbrains.dokka.DokkaSourceSetID
 import org.jetbrains.dokka.Platform
 import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
 import org.jetbrains.kotlin.analysis.api.lifetime.KtLifetimeTokenProvider
 import org.jetbrains.kotlin.analysis.api.standalone.KtAlwaysAccessibleLifetimeTokenProvider
-import org.jetbrains.kotlin.analysis.api.standalone.StandaloneAnalysisAPISession
 import org.jetbrains.kotlin.analysis.api.standalone.buildStandaloneAnalysisAPISession
 import org.jetbrains.kotlin.analysis.project.structure.KtSourceModule
 import org.jetbrains.kotlin.analysis.project.structure.builder.KtModuleBuilder
@@ -52,58 +53,101 @@ internal fun getLanguageVersionSettings(
     )
 }
 
-// it should be changed after https://github.com/Kotlin/dokka/issues/3114
 @OptIn(KtAnalysisApiInternals::class)
 internal fun createAnalysisSession(
-    classpath: List<File>,
-    sourceRoots: Set<File>,
-    analysisPlatform: Platform,
-    languageVersion: String?,
-    apiVersion: String?,
+    sourceSets: List<DokkaConfiguration.DokkaSourceSet>,
     applicationDisposable: Disposable,
     projectDisposable: Disposable
-): Pair<StandaloneAnalysisAPISession, KtSourceModule> {
+): KotlinAnalysis {
+    val sourcesModule = mutableMapOf<DokkaConfiguration.DokkaSourceSet, KtSourceModule>()
 
-    var sourceModule: KtSourceModule? = null
     val analysisSession = buildStandaloneAnalysisAPISession(
         applicationDisposable = applicationDisposable,
         projectDisposable = projectDisposable,
         withPsiDeclarationFromBinaryModuleProvider = false
     ) {
         registerProjectService(KtLifetimeTokenProvider::class.java, KtAlwaysAccessibleLifetimeTokenProvider())
-        val targetPlatform = analysisPlatform.toTargetPlatform()
+
+        val sortedSourceSets = topologicalSortByDependantSourceSets(sourceSets)
+
+        val sourcesModuleBySourceSetId = mutableMapOf<DokkaSourceSetID, KtSourceModule>()
 
         buildKtModuleProvider {
-            val libraryRoots = classpath
-            fun KtModuleBuilder.addModuleDependencies(moduleName: String) {
+            val jdkModule = getJdkHomeFromSystemProperty()?.let { jdkHome ->
+                buildKtSdkModule {
+                    this.platform = Platform.jvm.toTargetPlatform()
+                    addBinaryRootsFromJdkHome(jdkHome.toPath(), isJre = true)
+                    sdkName = "JDK"
+                }
+            }
+
+            fun KtModuleBuilder.addModuleDependencies(sourceSet: DokkaConfiguration.DokkaSourceSet) {
+                val targetPlatform = sourceSet.analysisPlatform.toTargetPlatform()
                 addRegularDependency(
                     buildKtLibraryModule {
                         this.platform = targetPlatform
-                        addBinaryRoots(libraryRoots.map { it.toPath() })
-                        libraryName = "Library for $moduleName"
+                        addBinaryRoots(sourceSet.classpath.map { it.toPath() })
+                        libraryName = "Library for ${sourceSet.displayName}"
                     }
                 )
-                getJdkHomeFromSystemProperty()?.let { jdkHome ->
-                    addRegularDependency(
-                        buildKtSdkModule {
-                            this.platform = targetPlatform
-                            addBinaryRootsFromJdkHome(jdkHome.toPath(), isJre = true)
-                            sdkName = "JDK for $moduleName"
-                        }
-                    )
+                if (sourceSet.analysisPlatform == Platform.jvm && jdkModule != null) {
+                    addRegularDependency(jdkModule)
+                }
+                sourceSet.dependentSourceSets.forEach{
+                    addRegularDependency(sourcesModuleBySourceSetId[it] ?: throw IllegalStateException("There is no source module for $it"))
                 }
             }
-            sourceModule = buildKtSourceModule {
-                languageVersionSettings = getLanguageVersionSettings(languageVersion, apiVersion)
-                platform = targetPlatform
-                moduleName = "<module>"
-                // TODO: We should handle (virtual) file changes announced via LSP with the VFS
-                addSourceRoots(sourceRoots.map { it.toPath() })
-                addModuleDependencies(moduleName)
+
+            for (sourceSet in sortedSourceSets) {
+                val targetPlatform = sourceSet.analysisPlatform.toTargetPlatform()
+                val sourceModule = buildKtSourceModule {
+                    languageVersionSettings =
+                        getLanguageVersionSettings(sourceSet.languageVersion, sourceSet.apiVersion)
+                    platform = targetPlatform
+                    moduleName = "<module ${sourceSet.displayName}>"
+                    addSourceRoots(sourceSet.sourceRoots.map { it.toPath() })
+                    addModuleDependencies(
+                        sourceSet,
+                    )
+                }
+                sourcesModule[sourceSet] = sourceModule
+                sourcesModuleBySourceSetId[sourceSet.sourceSetID] = sourceModule
+                addModule(sourceModule)
             }
-            platform = targetPlatform
-            addModule(sourceModule!!)
+            platform = sourceSets.map { it.analysisPlatform }.distinct().singleOrNull()?.toTargetPlatform()
+                ?: Platform.common.toTargetPlatform()
         }
     }
-    return Pair(analysisSession, sourceModule ?: throw IllegalStateException())
+    return KotlinAnalysis(sourcesModule, analysisSession, applicationDisposable, projectDisposable)
+}
+
+private enum class State {
+    UNVISITED,
+    VISITING,
+    VISITED;
+}
+
+internal fun topologicalSortByDependantSourceSets(sourceSets: List<DokkaConfiguration.DokkaSourceSet>): List<DokkaConfiguration.DokkaSourceSet> {
+    val result = mutableListOf<DokkaConfiguration.DokkaSourceSet>()
+
+    val verticesAssociatedWithState = sourceSets.associateWithTo(mutableMapOf()) { State.UNVISITED }
+    fun dfs(souceSet: DokkaConfiguration.DokkaSourceSet) {
+        when (verticesAssociatedWithState[souceSet]) {
+            State.VISITED -> return
+            State.VISITING -> throw Error("Detected cycle in source set graph")
+            else -> {
+                val dependentSourceSets =
+                    souceSet.dependentSourceSets.map { dependentSourceSetId ->
+                        sourceSets.find { it.sourceSetID == dependentSourceSetId }
+                            ?: throw IllegalStateException("Unknown source set Id $dependentSourceSetId in dependencies of ${souceSet.sourceSetID}")
+                    }
+                verticesAssociatedWithState[souceSet] = State.VISITING
+                dependentSourceSets.forEach(::dfs)
+                verticesAssociatedWithState[souceSet] = State.VISITED
+                result += souceSet
+            }
+        }
+    }
+    sourceSets.forEach(::dfs)
+    return result
 }

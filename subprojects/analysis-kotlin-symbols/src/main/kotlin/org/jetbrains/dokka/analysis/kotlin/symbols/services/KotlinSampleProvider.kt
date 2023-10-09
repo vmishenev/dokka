@@ -72,8 +72,8 @@ public open class KotlinSampleProvider(
      * @return [SampleProvider.SampleSnippet] or null if it has not found by [fqLink]
      */
     override fun getSample(sourceSet: DokkaConfiguration.DokkaSourceSet, fqLink: String): SampleProvider.SampleSnippet? {
-        val analysisContext = kotlinAnalysis[sourceSet]
-        val psiElement = analyze(analysisContext.mainModule) {
+        val analysisContext = kotlinAnalysis
+        val psiElement = analyze(analysisContext.getModule(sourceSet)) {
             val lastDotIndex = fqLink.lastIndexOf('.')
 
             val functionName = if (lastDotIndex == -1) fqLink else fqLink.substring(lastDotIndex + 1, fqLink.length)

@@ -1,0 +1,139 @@
+/*
+ * Copyright 2017-2022 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+}
+
+kotlin {
+    jvm {
+        withJava()
+        compilations.configureEach {
+            kotlinOptions {
+                jvmTarget = '1.8'
+                freeCompilerArgs += '-Xjdk-release=1.8'
+            }
+        }
+    }
+
+    js {
+        nodejs {
+            testTask {
+                useMocha {
+		    timeout = "10s"
+                }
+            }
+        }
+        configure([compilations.main, compilations.test]) {
+            kotlinOptions {
+                sourceMap = true
+                moduleKind = "umd"
+                metaInfo = true
+            }
+        }
+    }
+
+    sourceSets.all {
+        kotlin.srcDirs = ["$it.name/src"]
+        resources.srcDirs = ["$it.name/resources"]
+        languageSettings {
+            progressiveMode = true
+
+            optIn("kotlin.ExperimentalMultiplatform")
+            optIn("kotlin.ExperimentalStdlibApi")
+            optIn("kotlinx.serialization.InternalSerializationApi")
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib-common'
+            }
+        }
+
+        commonTest {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-test-common'
+                api 'org.jetbrains.kotlin:kotlin-test-annotations-common'
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib'
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-test-junit'
+            }
+        }
+
+        jsMain {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib-js'
+            }
+        }
+
+        jsTest {
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-test-js'
+            }
+        }
+
+        nativeMain.dependencies {
+        }
+    }
+
+    sourceSets.findAll({ it.name.contains("Test") }).forEach { srcSet ->
+        srcSet.languageSettings {
+            it.optIn("kotlinx.serialization.InternalSerializationApi")
+            it.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
+    }
+
+    sourceSets.matching({ it.name.contains("Main") }).all { srcSet ->
+        project.ext.set("kotlin.mpp.freeCompilerArgsForSourceSet.${srcSet.name}", ["-Xexplicit-api=strict"])
+    }
+
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                if (rootProject.ext.kotlin_lv_override != null) {
+                    languageVersion = rootProject.ext.kotlin_lv_override
+                    freeCompilerArgs += "-Xsuppress-version-warnings"
+                }
+            }
+        }
+        compilations.main {
+            kotlinOptions {
+                allWarningsAsErrors = true
+            }
+        }
+    }
+
+    // TODO: Remove deprecated linuxArm32Hfp and mingwX86 targets in 1.9.20.
+    def targetsWithoutTestRunners = ["linuxArm32Hfp", "linuxArm64", "mingwX86"]
+    configure(targets) {
+        // Configure additional binaries to run tests in the background
+        if (["macos", "linux", "mingw"].any { name.startsWith(it) && !targetsWithoutTestRunners.contains(name) }) {
+            binaries {
+                test("background", [nativeDebugBuild]) {
+                    freeCompilerArgs += ["-trw"]
+                }
+            }
+            testRuns {
+                background { setExecutionSourceFrom(binaries.backgroundDebugTest) }
+            }
+        }
+    }
+}

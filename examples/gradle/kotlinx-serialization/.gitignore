@@ -1,0 +1,22 @@
+.DS_Store
+
+# IntelliJ files
+**/.idea/*
+!/.idea/vcs.xml
+!/.idea/codeStyles
+!/.idea/copyright
+out/
+*.iml
+
+# Gradle files
+build/
+.gradle/
+
+# Maven files
+target
+
+# Modules for JS projects build
+node_modules
+
+# benchmarks.jar
+/benchmarks.jar

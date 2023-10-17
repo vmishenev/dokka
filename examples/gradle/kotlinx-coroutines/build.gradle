@@ -107,6 +107,9 @@ allprojects {
             mavenLocal()
         }
     }
+    repositories {
+        mavenLocal()
+    }
 
     ext.unpublished = unpublished
 
@@ -142,6 +145,7 @@ allprojects {
         google()
         mavenCentral()
         CommunityProjectsBuild.addDevRepositoryIfEnabled(delegate, project)
+        mavenLocal()
     }
 }
 

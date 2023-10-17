@@ -14,5 +14,6 @@ pluginManagement {
         if (build_snapshot_train?.toBoolean() == true) {
             mavenLocal()
         }
+        mavenLocal()
     }
 }

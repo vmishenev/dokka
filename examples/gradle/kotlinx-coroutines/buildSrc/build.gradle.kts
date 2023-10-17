@@ -25,6 +25,7 @@ repositories {
     if (buildSnapshotTrain) {
         mavenLocal()
     }
+    mavenLocal()
 }
 
 val gradleProperties = Properties().apply {

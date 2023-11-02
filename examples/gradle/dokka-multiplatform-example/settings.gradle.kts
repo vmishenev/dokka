@@ -4,3 +4,12 @@
 
 rootProject.name = "dokka-multiplatform-example"
 
+pluginManagement {
+
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
+}

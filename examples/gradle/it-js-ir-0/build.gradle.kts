@@ -19,7 +19,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(npm("is-sorted", "1.0.5"))
 
-    val reactVersion = "18.2.0-pre.597"
+    val reactVersion = "18.2.0-pre.635"
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react:$reactVersion")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:$reactVersion")
 }

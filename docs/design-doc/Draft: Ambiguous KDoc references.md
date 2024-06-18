@@ -3,6 +3,7 @@
 **Preamble:** The aim of the document is to address the current issues with ambiguous KDoc references that Dokka experiences during the migration to K2 (Analysis API). However, a chosen solution can be applied for future use cases as well.
 
 # Introduction
+
 There are two types of KDoc references to declaration:
 -   Fully qualified ones, for example `[com.example.classA]`
 -   Relative ones, for example `[memberProperty]`
@@ -186,7 +187,7 @@ This section considers **2 solutions**. It is unnecessary to choose only one for
 
 ### 1 By tooling
 The problem of  ambiguous KDoc references can be solved by tooling (Dokka and IDE).
-Dokka can show all possible candidates *via a interactive list* in the same way as IDE does it for ambiguous resolving.  Under the hood, the Analysis API returns a list of KDoc candidates.
+Dokka can show all possible candidates *via a popup with an interactive list* in the same way as IDE does it for ambiguous resolving.  Under the hood, the Analysis API returns a list of KDoc candidates.
 ![example](https://i.ibb.co/dKQkshh/image.png)
 **Pros:**
 * it seems suitable for overloads
@@ -411,18 +412,18 @@ Whether  resolving KDoc references should take visibility into account is an ope
 Javadoc can take visibility into account for particular cases (not specified), but for most cases, it works like KDoc.
 
 ```java
-/**  
+/**
  * {@link JavaD} is resolved despite `private` and displayed as plain text 
  */
-public class JavaB {  
+public class JavaB {
     private class JavaC {}
-    void f() {}  
+    void f() {}
 }
-/**  
+/**
  * {@link JavaC} is unresolved
  * since JavaB.JavaC is private
  * but {@link #f} is resolved and displayed as plain text 
  */
- public class JavaA extends JavaB {
- }
+public class JavaA extends JavaB {
+}
 ```

@@ -9,7 +9,7 @@ There are two types of KDoc references to declaration:
 -   Relative ones, for example `[memberProperty]`
 
 Also, KDoc allows to refer to:
--   Parameters `[p]`.  They can be no only in `@param [p]` or `@param p`.
+-   Parameters `[p]`.  They can be not only in `@param [p]` or `@param p`.
 -   A receiver via `[this]`
 
 Here is an example for understating:
@@ -44,7 +44,7 @@ class classA {
 
 For relative references, there some are cases when KDoc references are ambiguous that means there more than one possible candidate from the users point of view. These cases was discovered by the migration Dokka to K2 and behave differently in K1 and K2. ([original issue](https://github.com/Kotlin/dokka/issues/3451))
 
-### I Reference to itself
+### 1. Reference to itself
 Javadoc and KDoc allow to have references to itself. It is a quite spread practice.
 However it can also lead to ambiguous reference:
 ```kotlin
@@ -78,7 +78,7 @@ class A    {
 ```
 For Javadoc, see the section `Other languages`.
 
-### II References to parameters
+### 2. References to parameters
 
 This case seems valid.
 ```kotlin
@@ -139,7 +139,7 @@ fun x() = 0
 /** here [x] refers to the function x(p: int) */
 ```
 
-### III Order of scopes
+### Order of scopes
 
 Currently, an inner scope already has a priority over outer scopes.
 Let's consider the the following general example to understand the current resolve of KDoc reference :
@@ -185,9 +185,10 @@ This section considers **2 solutions**. It is unnecessary to choose only one for
 
 *Choosing  a solution can be related to the future support of  KDoc references to overloads and a possible process of deprecation of the old KDoc links.*
 
-### 1 By tooling
+### 1. By tooling
 The problem of  ambiguous KDoc references can be solved by tooling (Dokka and IDE).
 Dokka can show all possible candidates *via a popup with an interactive list* in the same way as IDE does it for ambiguous resolving.  Under the hood, the Analysis API returns a list of KDoc candidates.
+
 ![example](https://i.ibb.co/dKQkshh/image.png)
 **Pros:**
 * it seems suitable for overloads
@@ -205,7 +206,7 @@ Dokka can show all possible candidates *via a popup with an interactive list* in
 
 * might be difficult to implement in HTML. It requires a drop-down list.
 
-### 2 By defining  a set of rules
+### 2. By defining  a set of rules
 The solutions is based on creating a set of rules for each particular case.
 
 Also, there is  the rule of thumb for KDoc references that states:
@@ -227,7 +228,7 @@ class A : C()
 The inherited nested class should be available here.
 
 
-#### Case I
+#### Case: 1. Reference to itself
 In this case, the rule of thumb for KDoc does not help since all names are available in code. So there 2 options here:
 1. Reference to itself should hide other available declarations.
 ```kotlin
@@ -268,7 +269,7 @@ For example,
 **Cons:**
 - in this example, there is no way to refer to the function `A`  (itself)
 
-#### Case II
+#### Case: 2. References to parameters
 1. Parameters of current declaration should hide other declaration.  It is according to the rule of thumb for KDoc references when, for the documentation of  classes/interfaces... , the KDoc corresponds to an `init` block.
    The visibility of parameters inside a class body is still questionable.
 ```kotlin
@@ -350,6 +351,31 @@ JSDoc does not have such a problem since it has a unique identifier like a fully
 
 For `@link` tag ( https://jsdoc.app/tags-inline-link ) there is a namepath. A namepath provides a way to do so and disambiguate between instance members, static members and inner variables. See [https://jsdoc.app/about-namepaths](https://jsdoc.app/about-namepaths)
 
+```js
+/**
+ * See {@link MyClass} and [MyClass's foo]{@link MyClass#foo} that just opens MyClass.html#foo
+ * Also, it does not allow to have a class and a function with the same name in a single scope.
+ */
+function usage() {}
+
+/**
+ * MyClass
+ * {@link foo} or {@link #foo} are unresolved in JSDoc, but resolved in IDE with a popup
+ * {@link MyClass#foo} is resolved
+ */
+class MyClass {
+    /**
+     * foo function
+     * {@link MyClass#foo} is resolved
+     * {@link foo} or {@link #foo} are unresolved
+     */
+    foo() {}
+    /**
+     * foo field
+     */
+    foo = "John";
+}
+```
 
 
 ### Python (Sphinx)
@@ -398,8 +424,6 @@ public void Translate(int dx, int dy) {
 
 As Java, C# does not allow to have a nested class with the same name as enclosing class
 
-Other languages (e.g. Rust, Golang..) do not have the concept of nested classes.
-
 
 ## Appendix
 
@@ -412,18 +436,18 @@ Whether  resolving KDoc references should take visibility into account is an ope
 Javadoc can take visibility into account for particular cases (not specified), but for most cases, it works like KDoc.
 
 ```java
-/**
+/**  
  * {@link JavaD} is resolved despite `private` and displayed as plain text 
  */
-public class JavaB {
+public class JavaB {  
     private class JavaC {}
-    void f() {}
+    void f() {}  
 }
-/**
+/**  
  * {@link JavaC} is unresolved
  * since JavaB.JavaC is private
  * but {@link #f} is resolved and displayed as plain text 
  */
-public class JavaA extends JavaB {
-}
+ public class JavaA extends JavaB {
+ }
 ```

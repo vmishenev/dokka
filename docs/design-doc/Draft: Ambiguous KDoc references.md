@@ -1,16 +1,17 @@
 ﻿#  Ambiguous KDoc references
 
-**Preamble:** The aim of the document is to address the current issues with ambiguous KDoc references that Dokka experiences during the migration to K2 (Analysis API). However, a chosen solution can be applied for future use cases as well.
+**Preamble:** The document aims to address the current issues with ambiguous KDoc references that Dokka faced during the migration to K2 (Analysis API). However, a chosen solution can be applied to future use cases as well.
 
 # Introduction
 
-There are two types of KDoc references to declaration:
--   Fully qualified ones, for example `[com.example.classA]`
+There are two types of KDoc references to a declaration:
+-   Fully qualified ones, for example `[com.example.classA]`,containing a full package name
 -   Relative ones, for example `[memberProperty]`
 
 Also, KDoc allows to refer to:
 -   Parameters `[p]`.  They can be not only in `@param [p]` or `@param p`.
 -   A receiver via `[this]`
+-   Packages
 
 Here is an example for understating:
 ```kotlin
@@ -42,11 +43,11 @@ class classA {
 
 # Problem
 
-For relative references, there some are cases when KDoc references are ambiguous that means there more than one possible candidate from the users point of view. These cases was discovered by the migration Dokka to K2 and behave differently in K1 and K2. ([original issue](https://github.com/Kotlin/dokka/issues/3451))
+For relative references, there some are cases when KDoc references are ambiguous that means there is more than one possible candidate from the users point of view. These cases were discovered by the migration of Dokka to K2 and behave differently in K1 and K2. ([original issue](https://github.com/Kotlin/dokka/issues/3451))
 
 ### 1. Reference to itself
 Javadoc and KDoc allow to have references to itself. It is a quite spread practice.
-However it can also lead to ambiguous reference:
+However, it can also lead to ambiguous references:
 ```kotlin
  /**
  *  [A] In K1, it leads to the nested class A.A. In K2 - to the outer class A
@@ -55,7 +56,7 @@ class A {
 	class A
 }
 ```
-The case (a nested class with the same name as enclosing class) can be unpopular since it is banned in Java, C#.
+The case (a nested class with the same name as the enclosing class) can be unpopular since it is banned in Java, C#.
 
 There is a more practical case in Kotlin with a factory function :
 ```kotlin
@@ -64,10 +65,10 @@ class A
 /** [A] */
 fun A(p: Int) = A()
 ```
-In K1, the both reference lead to the class A. In K2, they lead to itself.
-This case can be applied to all possible pairs of declaration kinds (function and function also known as overloads problem , property and class...).
+In K1, both references lead to the class A. In K2, they lead to itself.
+This case can be applied to all possible pairs of declaration kinds (function and function also known as overloads problem; property and class...).
 
-Also, a constructor has a name of class.
+Also, a constructor has the name of a class.
 ```kotlin
 class A    {
 	/** 
@@ -113,7 +114,7 @@ class A(a: Int) {
 
 ## Ambiguity in other cases
 
-Also, there other cases that can be considered as ambiguous, but their behavior is consistent in K1 and K2.
+Also, there are other cases that can be considered as ambiguous, but their behavior is consistent in K1 and K2.
 
 For trivial cases (ambiguous references are inside a single scope) there are the predefined priorities of KDoc candidates in the Dokka and IDE K1 implementations:
 -   class
@@ -128,7 +129,7 @@ fun x() = 0
 
 /** here [x] refers to the function */
 ```
-These priorities allow to avoid ambiguity in fully qualified references except the case `I  Reference to itself` above.
+These priorities allow Dokka to avoid ambiguity in some references except the case `I  Reference to itself` above.
 
 In the case of overloads, a KDoc reference leads to the first occurrence.
 For example,
@@ -142,7 +143,7 @@ fun x() = 0
 ### Order of scopes
 
 Currently, an inner scope already has a priority over outer scopes.
-Let's consider the the following general example to understand the current resolve of KDoc reference :
+Let's consider the following general example to understand the current resolve of KDoc reference :
 ```kotlin
 class B
 
@@ -152,6 +153,7 @@ class A {
 }
 ```
 The search for the declaration is initially done in the members. Therefore, K1 (IDE and Dokka), K2, and Javadoc refer to a nested class B.
+For example, Swift has the opposite behavior.
 
 Here is another example:
 ```kotlin
@@ -161,6 +163,7 @@ fun a() = 0
 /** [a] K1 and K2 refer to the parameter */
 fun f(a: Int) = 0
 ```
+
 
 #### Related problem: Availability/Visibility of  nested classes from base classes
 However, "inherited" nested classes are in question:
@@ -183,13 +186,14 @@ It is a problem of determining what declarations the current context of KDoc con
 ## Proposals
 This section considers **2 solutions**. It is unnecessary to choose only one for all cases above.
 
-*Choosing  a solution can be related to the future support of  KDoc references to overloads and a possible process of deprecation of the old KDoc links.*
+*Choosing a solution can be related to the future support of  KDoc references to overloads and a possible process of deprecation of the old KDoc links.*
 
 ### 1. By tooling
-The problem of  ambiguous KDoc references can be solved by tooling (Dokka and IDE).
+The problem of ambiguous KDoc references can be solved by tooling (Dokka and IDE).
 Dokka can show all possible candidates *via a popup with an interactive list* in the same way as IDE does it for ambiguous resolving.  Under the hood, the Analysis API returns a list of KDoc candidates.
 
-![example](https://i.ibb.co/dKQkshh/image.png)
+![example](https://i.ibb.co/dKQkshh/image.png?)
+
 **Pros:**
 * it seems suitable for overloads
 
@@ -202,14 +206,14 @@ Dokka can show all possible candidates *via a popup with an interactive list* in
   The class [A]..., but it also shows the irrelevant fun
   */
   ```
-  or star-imports can contains unexpected declarations with the same name
+  or star-imports can contain unexpected declarations with the same name
 
 * might be difficult to implement in HTML. It requires a drop-down list.
 
 ### 2. By defining  a set of rules
-The solutions is based on creating a set of rules for each particular case.
+The solution is based on creating a set of rules for each particular case.
 
-Also, there is  the rule of thumb for KDoc references that states:
+Also, there is the rule of thumb for KDoc references that states:
 *References should behave as if they were written in code. (omitting some details)*  *(The exception is visibility)*
 That means that the context of KDoc reference should contain all available names at a given point in code.
 For example, in the documentation of functions/properties - the KDoc context can correspond to a function body.  
@@ -270,7 +274,7 @@ For example,
 - in this example, there is no way to refer to the function `A`  (itself)
 
 #### Case: 2. References to parameters
-1. Parameters of current declaration should hide other declaration.  It is according to the rule of thumb for KDoc references when, for the documentation of  classes/interfaces... , the KDoc corresponds to an `init` block.
+1. Parameters of the current declaration should hide other declarations.  It is according to the rule of thumb for KDoc references when, for the documentation of classes/interfaces..., the KDoc corresponds to an `init` block.
    The visibility of parameters inside a class body is still questionable.
 ```kotlin
 /**
@@ -281,7 +285,7 @@ class A(val abc: String)
 ```
 **Pros/Cons**  ???
 
-3. Otherwise, we have no possibility to have a reference to a parameter from a documentation of class since having a reference to parameters in a documentation of class can have no sense. References to parameters from the documentation of class should be prohibited .
+3. Otherwise, we cannot have a reference to a parameter from a documentation of class since having a reference to parameters in a documentation of class can make no sense. References to parameters from the documentation of class should be prohibited.
    However, such a reference should be allowed in a doc tag section `@constructor`
 ```kotlin
 /**
@@ -298,12 +302,16 @@ class A(val abc: String, p2: Int) {
 
 ## Other languages
 
+All considered languages can be divided into two groups:
+* ambiguous links are allowed;
+* ambiguous links are disallowed and cause a warning. In this case, a language provides a mechanism to disambiguate them.
+
 ### Javadoc
 [JavaDoc Documentation Comment Specification: References](https://docs.oracle.com/en/java/javase/22/docs/specs/javadoc/doc-comment-spec.html#references) describes the specification of Javadoc references a little:
 > the parameter types and parentheses can be omitted if the method or constructor is not overloaded and the name is not also that of a field or enum member in the same class or interface.
 
-Homewer, [Javadoc's style guide](https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#styleguide) allows to omit parentheses for the general form of methods and constructors. In this case, a ambiguous reference will lead to:
-- a field if it exist
+However, [Javadoc's style guide](https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#styleguide) allows to omit parentheses for the general form of methods and constructors. In this case, an ambiguous reference will lead to:
+- a field if it exists
 - otherwise,  to the first occurrence of overload in the code.
   For example,
 ```java
@@ -313,8 +321,8 @@ Homewer, [Javadoc's style guide](https://www.oracle.com/technical-resources/arti
  public class JavaClassA {  
     public void f(int p) {}
     /**  
-		 * {@link #f} references to f(int p)
-		 */ 
+	* {@link #f} references to f(int p)
+	 */ 
     public void f() {}  
 }
 ```
@@ -330,7 +338,7 @@ Also, by the specification, `#` may be omitted for members:
 }
 ```
 
-Meanwhile, a class always have a priority:
+Meanwhile, a class always has a priority:
 ```java
 /**  
  * {@link JavaClassA2} leads to the class  
@@ -347,14 +355,11 @@ Also, Javadoc does not have references to function parameters.
 
 ### JavaScript (JSDoc)
 
-JSDoc does not have such a problem since it has a unique identifier like a fully qualified path in Kotlin.
-
-For `@link` tag ( https://jsdoc.app/tags-inline-link ) there is a namepath. A namepath provides a way to do so and disambiguate between instance members, static members and inner variables. See [https://jsdoc.app/about-namepaths](https://jsdoc.app/about-namepaths)
-
-```js
+JSDoc does not have such problems with relative references since it has a unique identifier like a fully qualified path in Kotlin.
+For `@link` tag ( https://jsdoc.app/tags-inline-link ) there is a namepath.
+```js  
 /**
  * See {@link MyClass} and [MyClass's foo]{@link MyClass#foo} that just opens MyClass.html#foo
- * Also, it does not allow to have a class and a function with the same name in a single scope.
  */
 function usage() {}
 
@@ -364,19 +369,41 @@ function usage() {}
  * {@link MyClass#foo} is resolved
  */
 class MyClass {
-    /**
-     * foo function
-     * {@link MyClass#foo} is resolved
-     * {@link foo} or {@link #foo} are unresolved
-     */
+	 /**
+	 * foo function
+	 * {@link MyClass#foo} is resolved
+	 * {@link foo} or {@link #foo} are unresolved
+	 */
     foo() {}
-    /**
-     * foo field
-     */
+    
+	/**
+	 * foo field
+	 */
     foo = "John";
 }
 ```
+A namepath provides a way to do so and disambiguate between instance members, static members and inner variables. See [https://jsdoc.app/about-namepaths](https://jsdoc.app/about-namepaths)
+```js
+/**
+{@link Person#say}  // the instance method
+{@link Person.say}  // the static method 
+{@link Person~say}  // the inner method
+*/
+Person = function() {
+    this.say = function() {
+        return "I'm an instance.";
+    }
 
+    function say() {
+        return "I'm inner.";
+    }
+}
+Person.say = function() {
+    return "I'm static.";
+}
+```
+
+Also, it does not allow to have a class and a function with the same name in a single scope.
 
 ### Python (Sphinx)
 
@@ -389,41 +416,98 @@ There are some roles:  `:py:class` `:py:func`  `:py:meth:` `:py:attr:` and so on
 
 > Also, if the name is prefixed with a dot, and no exact match is found, the target is taken as a suffix and all object names with that suffix are searched. For example, :py:meth:`.TarFile.close` references the tarfile.TarFile.close() function, even if the current module is not tarfile. Since this can get ambiguous, if there is more than one possible match, you will get a warning from Sphinx.
 
+```python
+# FILE:: tets.py
+def main():  
+    """The reference :func:`.foo`"""
+
+# FILE:: tets2.py
+def foo():
+	pass
+	
+# FILE:: tets3.py
+def foo():
+	pass
+```
+This code causes the warning `more than one target found for cross-reference 'foo': test2.foo, test3.foo`, but the link leads to the first occurence `test2.foo`
+
+Python does not support method overloading.
+
 ### Swift
-TODO
 
-### C#
+Swift does not allow ambiguous references, although IDE suggests fixing them. If a reference is ambiguous, it is unresolved and will be displayed as plain text.
 
-It has XML documentation [https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments)
+![example](https://i.ibb.co/9s3pmyp/Screenshot-2024-07-13-at-12-38-09-AM.png)
 
-The `cref` attribute is used to provide a reference to a code element
 
-The documentation generator must respect namespace visibility according to using statements appearing within the source code.
+Swift has some approaches to disambiguate references.
+See [Navigate to a symbol](https://www.swift.org/documentation/docc/linking-to-symbols-and-other-content#Navigate-to-a-Symbol)
 
-Examples:  
-`cref="System.Security.PermissionSet"`
-and relative references:
-```csharp
-public class Point {
-/// <summary>
-/// This method changes the point's location to
-/// the given coordinates. <see cref="Translate"/>
-/// </summary>
-public void Move(int xPosition, int yPosition) {
-...
-}
+#### 1. Suffixes of overloads
+```swift
+///  ``update(_:)-6woox``
+///  ``update(_:)-6wqkp``
+///  ``update(_:)`` is unresolved, a warning
+func usage() {}
 
-/// <summary>This method changes the point's location by
-/// the given x- and y-offsets. <see cref="Move"/>
-/// </summary>
-public void Translate(int dx, int dy) {
-...
-}
+///  ``update(_:)`` is resolved to itself
+func update(_ power: String) {}
+func update(_ energyLevel: Int) {}
+```
+#### 2. Suffixes of symbol types
+```swift
+///  ``Color-property``
+///  ``Color-class`` or ``Color-swift.class``
+class  FF {
+	///  ``Color`` is resolved to itself
+	///  ``Color-class`` is unresolved
+	let Color = 0;
+    public  struct  Color {}
 }
 ```
 
+### C#
+
+It has XML documentation [https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments).  
+A generated XML file passes to a Documentation generator, e. g. Sandcastle.
+
+The `cref` attribute is used to provide a reference to a code element. The C# documentation does not describe the cases of overloads and ambiguous references. The support of such references depends on a Documentation generator.
+
+The documentation generator must respect namespace visibility according to using statements appearing within the source code.
+
+
+```csharp
+///  <seealso  cref="Foo(int)"/>
+///  <seealso  cref="Foo()"/>
+///  <seealso  cref="Utils.Foo()"/>
+public  class  Utils {
+	///  <seealso  cref="Foo"/> Here is a warning (ambiguous) in VSCode
+	static  void  Foo() { }
+	static  void  Foo(int  a) { }
+}
+```
 As Java, C# does not allow to have a nested class with the same name as enclosing class
 
+### Rust
+In case of ambiguity, rustdoc will warn about the ambiguity and suggest a disambiguator.
+See [Disambiguators](https://doc.rust-lang.org/rustdoc/write-documentation/linking-to-items-by-name.html#namespaces-and-disambiguators)
+
+```rust
+/** 
+[fn@Foo] or [Foo()]
+[struct@Foo]  
+[Foo] is unresolved. Here is a warning (ambiguous link)
+*/  
+struct Foo {}  
+fn Foo() {}
+```
+There are no overloads in Rust.
+
+### Golang
+See [Go Doc Comments: Links](https://tip.golang.org/doc/comment#doclinks)
+> If different source files in a package import different packages using the same name, then the shorthand is ambiguous and cannot be used.
+
+However, the Godoc does not support links very well.
 
 ## Appendix
 
@@ -450,4 +534,10 @@ public class JavaB {
  */
  public class JavaA extends JavaB {
  }
+```
+
+```kotlin
+val a = 0
+internal fun a() = 0
+/** [a] leads to the internal fun and will be displayed in Dokka as plain text*/
 ```

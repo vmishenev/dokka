@@ -5,11 +5,11 @@
 # Introduction
 
 There are two types of KDoc references to a declaration:
--   Fully qualified ones, for example `[com.example.classA]`,containing a full package name
+-   Fully qualified ones, for example `[com.example.classA]`, starting with a full package name
 -   Relative ones, for example `[memberProperty]`
 
 Also, KDoc allows to refer to:
--   Parameters `[p]`.  They can be not only in `@param [p]` or `@param p`.
+-   Functional parameters `[p]` or type parameters  `[T]`.  They can be not only in `@param [p]` or `@param p`.
 -   A receiver via `[this]`
 -   Packages
 
@@ -43,7 +43,7 @@ class classA {
 
 # Problem
 
-For relative references, there some are cases when KDoc references are ambiguous that means there is more than one possible candidate from the users point of view. These cases were discovered by the migration of Dokka to K2 and behave differently in K1 and K2. ([original issue](https://github.com/Kotlin/dokka/issues/3451))
+There are cases when KDoc references are ambiguous meaning there is more than one possible candidate from the users point of view. These cases were discovered by the migration of Dokka to K2 and behave differently in K1 and K2. ([original issue](https://github.com/Kotlin/dokka/issues/3451))
 
 ### 1. Reference to itself
 Javadoc and KDoc allow to have references to itself. It is a quite spread practice.
@@ -79,14 +79,14 @@ class A    {
 ```
 For Javadoc, see the section `Other languages`.
 
-### 2. References to parameters
+### 2. References to constructor parameters
 
 This case seems valid.
 ```kotlin
 val abc: String = ""
 /**
 * [abc] to the parameter in K1 and K2.
-* For the property, a fully qulified reference can be used.
+* For the property, a fully qualified reference can be used.
 */
 fun f(abc: String) = 0
 ```
@@ -101,7 +101,7 @@ class A(val abc: String)
 ```
 From the point of IDE view, the link `[abc]` leads to the same position in a source file independently of whether the `abc` is a parameter or property.
 
-#### Related problem: Availability/Visibility of parameters
+#### Related problem: Availability/Visibility of constructor parameters
 The availability of parameters inside a scope can result in ambiguous references.
 ```kotlin
 class A(a: Int) {  
@@ -116,7 +116,7 @@ class A(a: Int) {
 
 Also, there are other cases that can be considered as ambiguous, but their behavior is consistent in K1 and K2.
 
-For trivial cases (ambiguous references are inside a single scope) there are the predefined priorities of KDoc candidates in the Dokka and IDE K1 implementations:
+For trivial cases (by a kind of declaration; ambiguous references are inside a single scope) there are the predefined priorities of KDoc candidates in the Dokka and IDE K1 implementations:
 -   class
 -   package
 -   function
@@ -190,7 +190,7 @@ This section considers **2 solutions**. It is unnecessary to choose only one for
 
 ### 1. By tooling
 The problem of ambiguous KDoc references can be solved by tooling (Dokka and IDE).
-Dokka can show all possible candidates *via a popup with an interactive list* in the same way as IDE does it for ambiguous resolving.  Under the hood, the Analysis API returns a list of KDoc candidates.
+Dokka can show all possible candidates *via a popup with an interactive list* in the same way as IDE does it for ambiguous resolving in Javadoc etc.  Under the hood, the Analysis API returns a list of KDoc candidates.
 
 ![example](https://i.ibb.co/dKQkshh/image.png?)
 
@@ -208,16 +208,16 @@ Dokka can show all possible candidates *via a popup with an interactive list* in
   ```
   or star-imports can contain unexpected declarations with the same name
 
-* might be difficult to implement in HTML. It requires a drop-down list.
+* might be a bit difficult to implement in HTML. It requires a drop-down list.
 
 ### 2. By defining  a set of rules
-The solution is based on creating a set of rules for each particular case.
+The solution is based on creating a set of rules for each particular case as we already have one for each kind of declaration.
 
-Also, there is the rule of thumb for KDoc references that states:
-*References should behave as if they were written in code. (omitting some details)*  *(The exception is visibility)*
+Also, there is a rule of thumb for KDoc references that states:
+*References should behave as if they were written in code. (omitting some details, e.g. visibility)*
 That means that the context of KDoc reference should contain all available names at a given point in code.
 For example, in the documentation of functions/properties - the KDoc context can correspond to a function body.  
-This rule can be applied to the **Case III**.
+This rule can be applied to the **Case 3: Related problem: Availability/Visibility of  nested classes from base classes**.
 
 ```kotlin
 open class C {
@@ -233,7 +233,9 @@ The inherited nested class should be available here.
 
 
 #### Case: 1. Reference to itself
-In this case, the rule of thumb for KDoc does not help since all names are available in code. So there 2 options here:
+In this case, the rule of thumb for KDoc does not help since all names are available in code. The code context helps to minimize name conflicts between entities of different kinds (e.g. see [JLS 6.5](https://docs.oracle.com/javase/specs/jls/se10/html/jls-6.html#jls-6.5)).
+
+So there 2 options here:
 1. Reference to itself should hide other available declarations.
 ```kotlin
 /**
@@ -303,14 +305,14 @@ class A(val abc: String, p2: Int) {
 ## Other languages
 
 All considered languages can be divided into two groups:
-* ambiguous links are allowed;
-* ambiguous links are disallowed and cause a warning. In this case, a language provides a mechanism to disambiguate them.
+* ambiguous links are allowed (Java);
+* ambiguous links are disallowed and cause a warning. In this case, a language provides a mechanism to disambiguate them. (Swift, C#, Rust, *Golang*)
 
 ### Javadoc
 [JavaDoc Documentation Comment Specification: References](https://docs.oracle.com/en/java/javase/22/docs/specs/javadoc/doc-comment-spec.html#references) describes the specification of Javadoc references a little:
 > the parameter types and parentheses can be omitted if the method or constructor is not overloaded and the name is not also that of a field or enum member in the same class or interface.
 
-However, [Javadoc's style guide](https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#styleguide) allows to omit parentheses for the general form of methods and constructors. In this case, an ambiguous reference will lead to:
+Homewer, [Javadoc's style guide](https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#styleguide) allows to omit parentheses for the general form of methods and constructors. In this case, an ambiguous reference will lead to:
 - a field if it exists
 - otherwise,  to the first occurrence of overload in the code.
   For example,
@@ -520,20 +522,20 @@ Whether  resolving KDoc references should take visibility into account is an ope
 Javadoc can take visibility into account for particular cases (not specified), but for most cases, it works like KDoc.
 
 ```java
-/**  
+/**
  * {@link JavaD} is resolved despite `private` and displayed as plain text 
  */
-public class JavaB {  
+public class JavaB {
     private class JavaC {}
-    void f() {}  
+    void f() {}
 }
-/**  
+/**
  * {@link JavaC} is unresolved
  * since JavaB.JavaC is private
  * but {@link #f} is resolved and displayed as plain text 
  */
- public class JavaA extends JavaB {
- }
+public class JavaA extends JavaB {
+}
 ```
 
 ```kotlin
